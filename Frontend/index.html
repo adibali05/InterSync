@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Internship Engine | Enterprise Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Space Grotesk', sans-serif; background-color: #020617; color: #f8fafc; }
+        
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .neon-border { position: relative; }
+        .neon-border::after {
+            content: ''; position: absolute; inset: 0;
+            border-radius: inherit; padding: 1px;
+            background: linear-gradient(135deg, #38bdf8, #818cf8, transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+        }
+
+        input, textarea {
+            background-color: rgba(2, 6, 23, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            color: white; outline: none; transition: all 0.3s ease;
+        }
+        input:focus, textarea:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
+        
+        .log-entry { animation: slideIn 0.3s ease-out forwards; opacity: 0; transform: translateX(-10px); }
+        @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+
+        .timeline-step { display: flex; flex-direction: column; align-items: center; position: relative; flex: 1; text-align: center; }
+        .timeline-step::after {
+            content: ''; position: absolute; top: 12px; left: 50%; width: 100%; height: 2px;
+            background: rgba(148, 163, 184, 0.2); z-index: -1;
+        }
+        .timeline-step:last-child::after { display: none; }
+        .timeline-step.active .circle { background: #38bdf8; border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); }
+        .timeline-step.completed .circle { background: #34d399; border-color: #34d399; }
+        .timeline-step.completed::after { background: #34d399; }
+        .circle { 
+            width: 26px; height: 26px; border-radius: 50%; background: #0f172a; border: 2px solid #475569; 
+            margin: 0 auto 8px auto; display: flex; align-items: center; justify-content: center; font-size: 10px;
+        }
+        
+        .role-btn.active { background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; color: #38bdf8; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <header class="glass-panel border-b border-slate-800 p-4 flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-indigo-600 flex items-center justify-center">
+                <i class="fa-solid fa-microchip text-xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">InternAI System</h1>
+            </div>
+        </div>
+        
+        <div class="flex bg-slate-900 rounded-lg p-1 border border-slate-800 gap-1">
+            <button onclick="switchRole('student')" id="btn-student" class="role-btn active px-6 py-2 rounded-md text-sm font-semibold text-slate-400 border border-transparent transition-all">Student</button>
+            <button onclick="switchRole('mentor')" id="btn-mentor" class="role-btn px-6 py-2 rounded-md text-sm font-semibold text-slate-400 border border-transparent transition-all">Mentor</button>
+            <button onclick="switchRole('admin')" id="btn-admin" class="role-btn px-6 py-2 rounded-md text-sm font-semibold text-slate-400 border border-transparent transition-all">Admin</button>
+        </div>
+    </header>
+
+    <div class="glass-panel px-8 py-6 border-b border-slate-800">
+        <div class="flex justify-between relative z-0">
+            <div class="timeline-step completed"><div class="circle"><i class="fa-solid fa-check text-white"></i></div><span class="text-xs font-medium text-slate-300">Register</span></div>
+            <div class="timeline-step completed"><div class="circle"><i class="fa-solid fa-check text-white"></i></div><span class="text-xs font-medium text-slate-300">Approve</span></div>
+            <div class="timeline-step completed"><div class="circle"><i class="fa-solid fa-check text-white"></i></div><span class="text-xs font-medium text-slate-300">Assign Company</span></div>
+            <div class="timeline-step completed"><div class="circle"><i class="fa-solid fa-check text-white"></i></div><span class="text-xs font-medium text-slate-300">Start Internship</span></div>
+            <div class="timeline-step completed"><div class="circle"><i class="fa-solid fa-check text-white"></i></div><span class="text-xs font-medium text-slate-300">Track Attendance</span></div>
+            <div class="timeline-step active"><div class="circle"><i class="fa-solid fa-spinner fa-spin text-white"></i></div><span class="text-xs font-medium text-sky-400">Reports</span></div>
+            <div class="timeline-step"><div class="circle"></div><span class="text-xs font-medium text-slate-500">Final Evaluation</span></div>
+            <div class="timeline-step"><div class="circle"></div><span class="text-xs font-medium text-slate-500">Completion</span></div>
+        </div>
+    </div>
+
+    <main class="flex-1 overflow-y-auto p-6 md:p-8" id="main-content">
+        
+        <div id="view-student" class="block">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="glass-panel neon-border p-6 rounded-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-sky-500/20 blur-2xl rounded-full -mr-8 -mt-8"></div>
+                    <p class="text-slate-400 text-sm font-medium mb-1 uppercase tracking-wider">Health Score</p>
+                    <div class="flex items-end gap-2">
+                        <h3 id="ui-health-score" class="text-5xl font-bold text-white">--</h3>
+                        <span class="text-lg text-slate-500 mb-1">/100</span>
+                    </div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl">
+                    <p class="text-slate-400 text-sm font-medium mb-1 uppercase tracking-wider">Attendance</p>
+                    <h3 id="ui-attendance" class="text-4xl font-bold text-white mb-2">--%</h3>
+                    <div class="w-full bg-slate-800 rounded-full h-1 mt-4"><div id="bar-att" class="bg-sky-400 h-1 rounded-full transition-all duration-1000" style="width: 0%"></div></div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl">
+                    <p class="text-slate-400 text-sm font-medium mb-1 uppercase tracking-wider">Tasks</p>
+                    <h3 id="ui-tasks" class="text-4xl font-bold text-white mb-2">--</h3>
+                    <div class="w-full bg-slate-800 rounded-full h-1 mt-4"><div id="bar-task" class="bg-indigo-400 h-1 rounded-full transition-all duration-1000" style="width: 0%"></div></div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl flex flex-col justify-center border-l-4" id="ui-risk-box">
+                    <p class="text-slate-400 text-sm font-medium mb-1 uppercase tracking-wider">Risk Assessment</p>
+                    <h3 id="ui-risk" class="text-2xl font-bold text-white mt-1">Initializing...</h3>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <h3 class="text-lg font-semibold mb-2 flex items-center">
+                            <i class="fa-solid fa-code-commit text-sky-400 mr-2"></i> Submit Evidence
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-4">Paste student report to run through NLP extraction engine.</p>
+                        <textarea id="report-input" rows="4" class="w-full p-4 rounded-xl text-sm" placeholder="e.g. Added a MongoDB database connection and wrote SQL queries for reporting. Implemented FastAPI routes."></textarea>
+                        <button onclick="submitReport()" id="submit-btn" class="mt-4 w-full py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-xl font-bold tracking-wide shadow-lg shadow-sky-500/25 transition-all">
+                            <i class="fa-solid fa-brain mr-2"></i> RUN AI ANALYSIS
+                        </button>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl h-64 flex flex-col">
+                        <h3 class="text-sm font-semibold mb-4 text-slate-300 uppercase tracking-wider flex items-center">
+                            <i class="fa-solid fa-terminal mr-2"></i> AI Activity Terminal
+                        </h3>
+                        <div id="ai-logs" class="flex-1 overflow-y-auto space-y-3 font-mono text-xs text-slate-400">
+                            <div>> System initialized. Waiting for input...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="glass-panel p-6 rounded-2xl flex gap-6">
+                        <div class="w-1/2">
+                            <h3 class="text-lg font-semibold mb-2 flex items-center">
+                                <i class="fa-solid fa-radar text-indigo-400 mr-2"></i> Skill Alignment Radar
+                            </h3>
+                            <div class="relative h-64 w-full">
+                                <canvas id="skillRadar"></canvas>
+                            </div>
+                        </div>
+                        <div class="w-1/2 flex flex-col border-l border-slate-700 pl-6">
+                            <h3 class="text-sm font-semibold mb-4 text-slate-300 uppercase tracking-wider">Verified Profile</h3>
+                            <div class="flex-1 overflow-y-auto pr-2">
+                                <div id="skills-container" class="space-y-2"></div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-slate-800">
+                                <h3 class="text-xs font-semibold mb-2 text-slate-500 uppercase">AI Recommendation Action</h3>
+                                <div id="ui-recommendation" class="p-3 bg-sky-500/10 border border-sky-500/20 text-sky-400 rounded-lg text-sm font-medium">
+                                    Standby for analysis...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-mentor" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glass-panel p-6 rounded-2xl border-l-4 border-amber-400">
+                    <p class="text-slate-400 text-sm font-medium uppercase">Pending Reports</p>
+                    <h3 id="mentor-reports" class="text-4xl font-bold text-white mt-2">--</h3>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border-l-4 border-rose-500">
+                    <p class="text-slate-400 text-sm font-medium uppercase">At-Risk Students</p>
+                    <h3 id="mentor-risk" class="text-4xl font-bold text-white mt-2">--</h3>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border-l-4 border-sky-400">
+                    <p class="text-slate-400 text-sm font-medium uppercase">Tasks to Approve</p>
+                    <h3 id="mentor-tasks" class="text-4xl font-bold text-white mt-2">--</h3>
+                </div>
+            </div>
+            <div class="glass-panel p-8 rounded-2xl text-center">
+                <i class="fa-solid fa-users-viewfinder text-6xl text-slate-600 mb-4"></i>
+                <h2 class="text-xl font-bold text-white mb-2">Mentor Dashboard Active</h2>
+                <p class="text-slate-400">Select a student from the pending list to review their AI Skill Graph.</p>
+            </div>
+        </div>
+
+        <div id="view-admin" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glass-panel p-6 rounded-2xl border-l-4 border-indigo-500">
+                    <p class="text-slate-400 text-sm font-medium uppercase">Total Interns</p>
+                    <h3 id="admin-interns" class="text-4xl font-bold text-white mt-2">--</h3>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border-l-4 border-emerald-400">
+                    <p class="text-slate-400 text-sm font-medium uppercase">Avg Health Score</p>
+                    <h3 id="admin-health" class="text-4xl font-bold text-white mt-2">--</h3>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border-l-4 border-sky-400">
+                    <p class="text-slate-400 text-sm font-medium uppercase">Active Companies</p>
+                    <h3 id="admin-companies" class="text-4xl font-bold text-white mt-2">--</h3>
+                </div>
+            </div>
+            <div class="glass-panel p-8 rounded-2xl text-center">
+                <i class="fa-solid fa-chart-network text-6xl text-slate-600 mb-4"></i>
+                <h2 class="text-xl font-bold text-white mb-2">System Analytics & Reports</h2>
+                <p class="text-slate-400">Complete overview of all active internships, skill gaps, and placements across the organization.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_BASE = "http://localhost:8000/api/v1";
+        const TARGET_SKILLS = ["python", "fastapi", "react", "mongodb", "sql", "docker", "machine learning"];
+        let radarChart;
+
+        async function switchRole(role) {
+            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${role}`).classList.add('active');
+            
+            document.getElementById('view-student').classList.add('hidden');
+            document.getElementById('view-mentor').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            
+            document.getElementById(`view-${role}`).classList.remove('hidden');
+
+            try {
+                const res = await fetch(`${API_BASE}/dashboard/${role}`);
+                const data = await res.json();
+                
+                if(role === 'student') {
+                    updateDashboard(data.metrics.core_stats, data.metrics.health_score, data.metrics.risk_status);
+                    renderSkills(data.metrics.core_stats.verified_skills);
+                    updateRadarChart(data.metrics.core_stats.verified_skills);
+                } else if(role === 'mentor') {
+                    document.getElementById('mentor-reports').innerText = data.metrics.pending_reports;
+                    document.getElementById('mentor-risk').innerText = data.metrics.at_risk_students;
+                    document.getElementById('mentor-tasks').innerText = data.metrics.tasks_to_approve;
+                } else if(role === 'admin') {
+                    document.getElementById('admin-interns').innerText = data.metrics.total_interns;
+                    document.getElementById('admin-health').innerText = data.metrics.avg_health_score;
+                    document.getElementById('admin-companies').innerText = data.metrics.active_companies;
+                }
+            } catch (e) {}
+        }
+
+        async function fetchInitialData() {
+            switchRole('student');
+        }
+
+        async function submitReport() {
+            const btn = document.getElementById("submit-btn");
+            const reportText = document.getElementById("report-input").value;
+            if(!reportText) { addLog("WARNING: Empty report payload.", "text-amber-400"); return; }
+
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> PROCESSING...`;
+            btn.classList.add("opacity-75", "cursor-not-allowed");
+            document.getElementById("ai-logs").innerHTML = ""; 
+            
+            addLog("> Initializing NLP Pipeline...", "text-sky-400");
+            setTimeout(() => addLog("> Tokenizing text and matching patterns..."), 600);
+            setTimeout(() => addLog("> Extracting technical entities..."), 1200);
+
+            try {
+                const res = await fetch(`${API_BASE}/submit-report`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        student_id: "STU-101",
+                        report_content: reportText,
+                        target_role_skills: TARGET_SKILLS
+                    })
+                });
+                
+                const responseData = await res.json();
+                const analysis = responseData.analysis_pipeline;
+                
+                setTimeout(() => {
+                    addLog(`> FOUND: ${analysis.new_skills_extracted.length} new skills!`, "text-emerald-400 font-bold");
+                    addLog(`> Analyzing gaps against role requirements...`);
+                    document.getElementById("ui-recommendation").innerText = analysis.ai_action;
+                    fetchInitialData(); 
+                    document.getElementById("report-input").value = "";
+                }, 1800);
+
+            } catch (error) {
+                addLog("> SYSTEM FAILURE: Check API connection.", "text-rose-500");
+            } finally {
+                setTimeout(() => {
+                    btn.innerHTML = `<i class="fa-solid fa-brain mr-2"></i> RUN AI ANALYSIS`;
+                    btn.classList.remove("opacity-75", "cursor-not-allowed");
+                }, 2000);
+            }
+        }
+
+        function updateDashboard(stats, score, risk) {
+            document.getElementById("ui-health-score").innerText = score;
+            document.getElementById("ui-attendance").innerText = `${stats.attendance}%`;
+            document.getElementById("bar-att").style.width = `${stats.attendance}%`;
+            document.getElementById("ui-tasks").innerText = `${stats.tasks_completed}/${stats.tasks_total}`;
+            document.getElementById("bar-task").style.width = `${(stats.tasks_completed/stats.tasks_total)*100}%`;
+            
+            const riskEl = document.getElementById("ui-risk");
+            const riskBox = document.getElementById("ui-risk-box");
+            riskEl.innerText = risk;
+            
+            if(risk.includes("High")) {
+                riskEl.className = "text-2xl font-bold text-rose-500 mt-1";
+                riskBox.style.borderLeftColor = "#f43f5e";
+            } else if(risk.includes("Medium")) {
+                riskEl.className = "text-2xl font-bold text-amber-500 mt-1";
+                riskBox.style.borderLeftColor = "#f59e0b";
+            } else {
+                riskEl.className = "text-2xl font-bold text-emerald-400 mt-1";
+                riskBox.style.borderLeftColor = "#34d399";
+            }
+        }
+
+        function renderSkills(skills) {
+            const container = document.getElementById("skills-container");
+            container.innerHTML = "";
+            skills.forEach(skillObj => {
+                const el = document.createElement("div");
+                el.className = "flex justify-between items-center p-2.5 rounded-lg bg-slate-800/50 border border-slate-700/50 mb-2";
+                el.innerHTML = `
+                    <div class="flex items-center capitalize text-sm font-medium text-slate-200">
+                        <i class="fa-solid fa-check text-emerald-400 mr-2"></i> ${skillObj.skill}
+                    </div>
+                    <div class="text-xs font-mono px-2 py-1 bg-slate-900 rounded text-slate-400 border border-slate-700">
+                        Conf: ${skillObj.confidence}%
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function updateRadarChart(verifiedSkills) {
+            const userSkills = verifiedSkills.map(s => s.skill.toLowerCase());
+            const dataPoint = TARGET_SKILLS.map(ts => userSkills.includes(ts.toLowerCase()) ? 100 : 20);
+
+            if(radarChart) radarChart.destroy();
+            
+            const ctx = document.getElementById('skillRadar').getContext('2d');
+            Chart.defaults.color = '#64748b';
+            Chart.defaults.font.family = 'Space Grotesk';
+
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: TARGET_SKILLS.map(s => s.toUpperCase()),
+                    datasets: [{
+                        label: 'Student Skill Graph',
+                        data: dataPoint,
+                        backgroundColor: 'rgba(56, 189, 248, 0.2)',
+                        borderColor: '#38bdf8',
+                        pointBackgroundColor: '#818cf8',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#38bdf8',
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            pointLabels: { color: '#94a3b8', font: { size: 10 } },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function addLog(message, colorClass = "text-slate-400") {
+            const logs = document.getElementById("ai-logs");
+            const entry = document.createElement("div");
+            entry.className = `log-entry ${colorClass}`;
+            const time = new Date().toLocaleTimeString([], {hour12: false});
+            entry.innerHTML = `<span class="text-slate-600">[${time}]</span> ${message}`;
+            logs.appendChild(entry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        window.onload = fetchInitialData;
+    </script>
+</body>
+</html>
