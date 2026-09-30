@@ -10,55 +10,27 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Space Grotesk', sans-serif; background-color: #020617; color: #f8fafc; }
-        
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(56, 189, 248, 0.1);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
-        
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(56, 189, 248, 0.1); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
         .neon-border { position: relative; }
-        .neon-border::after {
-            content: ''; position: absolute; inset: 0;
-            border-radius: inherit; padding: 1px;
-            background: linear-gradient(135deg, #38bdf8, #818cf8, transparent);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
-        }
-
-        input, textarea {
-            background-color: rgba(2, 6, 23, 0.8);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            color: white; outline: none; transition: all 0.3s ease;
-        }
+        .neon-border::after { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, #38bdf8, #818cf8, transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+        input, textarea { background-color: rgba(2, 6, 23, 0.8); border: 1px solid rgba(148, 163, 184, 0.1); color: white; outline: none; transition: all 0.3s ease; }
         input:focus, textarea:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
-        
         .log-entry { animation: slideIn 0.3s ease-out forwards; opacity: 0; transform: translateX(-10px); }
         @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
-        
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #020617; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
-
         .timeline-step { display: flex; flex-direction: column; align-items: center; position: relative; flex: 1; text-align: center; }
-        .timeline-step::after {
-            content: ''; position: absolute; top: 12px; left: 50%; width: 100%; height: 2px;
-            background: rgba(148, 163, 184, 0.2); z-index: -1;
-        }
+        .timeline-step::after { content: ''; position: absolute; top: 12px; left: 50%; width: 100%; height: 2px; background: rgba(148, 163, 184, 0.2); z-index: -1; }
         .timeline-step:last-child::after { display: none; }
         .timeline-step.active .circle { background: #38bdf8; border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); }
         .timeline-step.completed .circle { background: #34d399; border-color: #34d399; }
         .timeline-step.completed::after { background: #34d399; }
-        .circle { 
-            width: 26px; height: 26px; border-radius: 50%; background: #0f172a; border: 2px solid #475569; 
-            margin: 0 auto 8px auto; display: flex; align-items: center; justify-content: center; font-size: 10px;
-        }
-        
+        .circle { width: 26px; height: 26px; border-radius: 50%; background: #0f172a; border: 2px solid #475569; margin: 0 auto 8px auto; display: flex; align-items: center; justify-content: center; font-size: 10px; }
         .role-btn.active { background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; color: #38bdf8; }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden">
+<body class="min-h-screen flex flex-col">
 
     <header class="glass-panel border-b border-slate-800 p-4 flex justify-between items-center z-10">
         <div class="flex items-center gap-3">
@@ -183,10 +155,33 @@
                     <h3 id="mentor-tasks" class="text-4xl font-bold text-white mt-2">--</h3>
                 </div>
             </div>
-            <div class="glass-panel p-8 rounded-2xl text-center">
-                <i class="fa-solid fa-users-viewfinder text-6xl text-slate-600 mb-4"></i>
-                <h2 class="text-xl font-bold text-white mb-2">Mentor Dashboard Active</h2>
-                <p class="text-slate-400">Select a student from the pending list to review their AI Skill Graph.</p>
+            
+            <div class="glass-panel p-6 rounded-2xl mb-8">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fa-solid fa-clipboard-check text-amber-400 mr-2"></i> Human-in-the-Loop Approval Queue
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-900/50 text-slate-400 uppercase text-xs">
+                            <tr>
+                                <th class="p-3">Student ID</th>
+                                <th class="p-3">Extracted Skills</th>
+                                <th class="p-3">Confidence</th>
+                                <th class="p-3">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mentor-queue-body">
+                            <tr class="border-b border-slate-800">
+                                <td class="p-3 font-mono text-sky-400">STU-101 (Demo)</td>
+                                <td class="p-3" id="mentor-queue-skills">Submit report on student page first</td>
+                                <td class="p-3" id="mentor-queue-conf">--</td>
+                                <td class="p-3">
+                                    <button onclick="approveQueueItem()" class="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded text-xs font-semibold hover:bg-emerald-500/30">Approve Live</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -205,10 +200,35 @@
                     <h3 id="admin-companies" class="text-4xl font-bold text-white mt-2">--</h3>
                 </div>
             </div>
-            <div class="glass-panel p-8 rounded-2xl text-center">
-                <i class="fa-solid fa-chart-network text-6xl text-slate-600 mb-4"></i>
-                <h2 class="text-xl font-bold text-white mb-2">System Analytics & Reports</h2>
-                <p class="text-slate-400">Complete overview of all active internships, skill gaps, and placements across the organization.</p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-panel p-6 rounded-2xl">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa-solid fa-chart-pie text-indigo-400 mr-2"></i> Institutional Skill Distribution
+                    </h3>
+                    <div class="relative h-64 w-full flex items-center justify-center">
+                        <canvas id="adminDoughnut"></canvas>
+                    </div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-400 mr-2"></i> Department Risk Watchlist
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1"><span class="text-slate-300">Artificial Intelligence</span><span class="text-emerald-400">Low Risk (4%)</span></div>
+                            <div class="w-full bg-slate-800 rounded-full h-2"><div class="bg-emerald-400 h-2 rounded-full" style="width: 15%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1"><span class="text-slate-300">Computer Engineering</span><span class="text-amber-400">Medium Risk (18%)</span></div>
+                            <div class="w-full bg-slate-800 rounded-full h-2"><div class="bg-amber-400 h-2 rounded-full" style="width: 45%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1"><span class="text-slate-300">Information Technology</span><span class="text-emerald-400">Low Risk (8%)</span></div>
+                            <div class="w-full bg-slate-800 rounded-full h-2"><div class="bg-emerald-400 h-2 rounded-full" style="width: 20%"></div></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -217,7 +237,8 @@
     <script>
         const API_BASE = "http://localhost:8000/api/v1";
         const TARGET_SKILLS = ["python", "fastapi", "react", "mongodb", "sql", "docker", "machine learning"];
-        let radarChart;
+        let radarChart, adminDoughnutChart;
+        let lastExtractedSkills = [];
 
         async function switchRole(role) {
             document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
@@ -241,10 +262,12 @@
                     document.getElementById('mentor-reports').innerText = data.metrics.pending_reports;
                     document.getElementById('mentor-risk').innerText = data.metrics.at_risk_students;
                     document.getElementById('mentor-tasks').innerText = data.metrics.tasks_to_approve;
+                    updateMentorQueue();
                 } else if(role === 'admin') {
                     document.getElementById('admin-interns').innerText = data.metrics.total_interns;
                     document.getElementById('admin-health').innerText = data.metrics.avg_health_score;
                     document.getElementById('admin-companies').innerText = data.metrics.active_companies;
+                    updateAdminDoughnut();
                 }
             } catch (e) {}
         }
@@ -279,6 +302,7 @@
                 
                 const responseData = await res.json();
                 const analysis = responseData.analysis_pipeline;
+                lastExtractedSkills = analysis.new_skills_extracted;
                 
                 setTimeout(() => {
                     addLog(`> FOUND: ${analysis.new_skills_extracted.length} new skills!`, "text-emerald-400 font-bold");
@@ -296,6 +320,41 @@
                     btn.classList.remove("opacity-75", "cursor-not-allowed");
                 }, 2000);
             }
+        }
+
+        function updateMentorQueue() {
+            if(lastExtractedSkills.length > 0) {
+                const skillNames = lastExtractedSkills.map(s => `${s.skill} (${s.confidence}%)`).join(', ');
+                document.getElementById('mentor-queue-skills').innerText = skillNames;
+                document.getElementById('mentor-queue-conf').innerText = 'Verified';
+            }
+        }
+
+        function approveQueueItem() {
+            alert('Skills approved by mentor successfully! Profile updated.');
+            document.getElementById('mentor-queue-skills').innerText = 'No pending approvals';
+            document.getElementById('mentor-queue-conf').innerText = '--';
+        }
+
+        function updateAdminDoughnut() {
+            if(adminDoughnutChart) adminDoughnutChart.destroy();
+            const ctx = document.getElementById('adminDoughnut').getContext('2d');
+            adminDoughnutChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Python', 'FastAPI', 'MongoDB', 'React', 'SQL'],
+                    datasets: [{
+                        data: [40, 25, 15, 10, 10],
+                        backgroundColor: ['#38bdf8', '#818cf8', '#34d399', '#f59e0b', '#f43f5e'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12 } } }
+                }
+            });
         }
 
         function updateDashboard(stats, score, risk) {

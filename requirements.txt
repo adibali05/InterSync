@@ -1,5 +1,11 @@
 fastapi
 uvicorn
 pymongo
+<<<<<<< HEAD
 spacy
+=======
+certifi
+transformers
+torch
+>>>>>>> 4700175d8c69692f1e5f4685fcba945213552f2e
 pydantic
