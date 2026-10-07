@@ -1,17 +1,30 @@
-<<<<<<< HEAD
-# Python
+# Python / Virtual Environment
+venv/
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
 env/
-venv/
-ENV/
-env.bak
-venv.bak
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# IDEs
+# IDEs & Editors
 .vscode/
 .idea/
 *.swp
@@ -20,16 +33,3 @@ venv.bak
 # OS Files
 .DS_Store
 Thumbs.db
-=======
-# Environments
-venv/
-.venv/
-env/
-
-# Python Cache
-__pycache__/
-*.pyc
-
-# OS Files
-.DS_Store
->>>>>>> 4700175d8c69692f1e5f4685fcba945213552f2e

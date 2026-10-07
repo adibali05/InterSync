@@ -3,454 +3,543 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Internship Engine | Enterprise Edition</title>
+    <title>InternSync | Enterprise Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Space Grotesk', sans-serif; background-color: #020617; color: #f8fafc; }
-        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(56, 189, 248, 0.1); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
-        .neon-border { position: relative; }
-        .neon-border::after { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, #38bdf8, #818cf8, transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
-        input, textarea { background-color: rgba(2, 6, 23, 0.8); border: 1px solid rgba(148, 163, 184, 0.1); color: white; outline: none; transition: all 0.3s ease; }
-        input:focus, textarea:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
-        .log-entry { animation: slideIn 0.3s ease-out forwards; opacity: 0; transform: translateX(-10px); }
-        @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        #login-screen { position: fixed; inset: 0; z-index: 100; background: url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') center/cover; display: flex; align-items: center; justify-content: center; }
+        .login-overlay { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); }
+        .app-layout { display: none; height: 100vh; overflow: hidden; }
+        .glass-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); }
+        .btn-primary { background: #2563eb; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: 0.2s; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .email-chip { display: inline-block; padding: 4px 10px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 99px; font-size: 11px; font-weight: 600; cursor: pointer; margin: 4px 2px; }
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #020617; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
-        .timeline-step { display: flex; flex-direction: column; align-items: center; position: relative; flex: 1; text-align: center; }
-        .timeline-step::after { content: ''; position: absolute; top: 12px; left: 50%; width: 100%; height: 2px; background: rgba(148, 163, 184, 0.2); z-index: -1; }
-        .timeline-step:last-child::after { display: none; }
-        .timeline-step.active .circle { background: #38bdf8; border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); }
-        .timeline-step.completed .circle { background: #34d399; border-color: #34d399; }
-        .timeline-step.completed::after { background: #34d399; }
-        .circle { width: 26px; height: 26px; border-radius: 50%; background: #0f172a; border: 2px solid #475569; margin: 0 auto 8px auto; display: flex; align-items: center; justify-content: center; font-size: 10px; }
-        .role-btn.active { background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; color: #38bdf8; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
 
-    <header class="glass-panel border-b border-slate-800 p-4 flex justify-between items-center z-10">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-indigo-600 flex items-center justify-center">
-                <i class="fa-solid fa-microchip text-xl text-white"></i>
+    <!-- 1. LOGIN SCREEN -->
+    <div id="login-screen">
+        <div class="login-overlay"></div>
+        <div class="relative z-10 w-full max-w-md bg-white p-8 rounded-2xl shadow-2xl">
+            <div class="text-center mb-6">
+                <i class="fa-solid fa-layer-group text-4xl text-blue-600 mb-3"></i>
+                <h1 class="text-2xl font-bold text-slate-800">InternSync Portal</h1>
+                <p class="text-sm text-slate-500 mt-1">G H Raisoni x TechNova Ecosystem</p>
             </div>
-            <div>
-                <h1 class="text-xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">InternAI System</h1>
-            </div>
-        </div>
-        
-        <div class="flex bg-slate-900 rounded-lg p-1 border border-slate-800 gap-1">
-            <button onclick="switchRole('student')" id="btn-student" class="role-btn active px-6 py-2 rounded-md text-sm font-semibold text-slate-400 border border-transparent transition-all">Student</button>
-            <button onclick="switchRole('mentor')" id="btn-mentor" class="role-btn px-6 py-2 rounded-md text-sm font-semibold text-slate-400 border border-transparent transition-all">Mentor</button>
-            <button onclick="switchRole('admin')" id="btn-admin" class="role-btn px-6 py-2 rounded-md text-sm font-semibold text-slate-400 border border-transparent transition-all">Admin</button>
-        </div>
-    </header>
+            
+            <div id="login-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-lg text-center"></div>
 
-    <div class="glass-panel px-8 py-6 border-b border-slate-800">
-        <div class="flex justify-between relative z-0">
-            <div class="timeline-step completed"><div class="circle"><i class="fa-solid fa-check text-white"></i></div><span class="text-xs font-medium text-slate-300">Register</span></div>
-            <div class="timeline-step completed"><div class="circle"><i class="fa-solid fa-check text-white"></i></div><span class="text-xs font-medium text-slate-300">Approve</span></div>
-            <div class="timeline-step completed"><div class="circle"><i class="fa-solid fa-check text-white"></i></div><span class="text-xs font-medium text-slate-300">Assign Company</span></div>
-            <div class="timeline-step completed"><div class="circle"><i class="fa-solid fa-check text-white"></i></div><span class="text-xs font-medium text-slate-300">Start Internship</span></div>
-            <div class="timeline-step completed"><div class="circle"><i class="fa-solid fa-check text-white"></i></div><span class="text-xs font-medium text-slate-300">Track Attendance</span></div>
-            <div class="timeline-step active"><div class="circle"><i class="fa-solid fa-spinner fa-spin text-white"></i></div><span class="text-xs font-medium text-sky-400">Reports</span></div>
-            <div class="timeline-step"><div class="circle"></div><span class="text-xs font-medium text-slate-500">Final Evaluation</span></div>
-            <div class="timeline-step"><div class="circle"></div><span class="text-xs font-medium text-slate-500">Completion</span></div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Select Role Profile</label>
+                    <select id="login-role" onchange="toggleLoginFields()" class="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-blue-500 font-medium">
+                        <option value="employer">Company HR (Hiring & PPO)</option>
+                        <option value="mentor">Company Mentor (Task Review)</option>
+                        <option value="tpo">University TPO (Placement Cell)</option>
+                        <option value="student">Student / Candidate</option>
+                    </select>
+                </div>
+                
+                <div id="general-auth">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Security PIN</label>
+                    <input type="password" value="••••••••" readonly class="w-full border border-slate-300 rounded-lg p-3 bg-slate-50 text-slate-500">
+                </div>
+
+                <div id="student-auth" class="hidden">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">University Email ID</label>
+                    <input type="email" id="student-email" placeholder="e.g. adib.ali@raisoni.edu" class="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-blue-500">
+                    
+                    <div class="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Demo Quick Logins (Click to Fill)</p>
+                        <div class="flex flex-wrap">
+                            <span class="email-chip" onclick="autoFillEmail('adib.ali@raisoni.edu')">adib.ali@raisoni.edu</span>
+                            <span class="email-chip" onclick="autoFillEmail('anushka@raisoni.edu')">anushka@raisoni.edu</span>
+                            <span class="email-chip" onclick="autoFillEmail('maithily@raisoni.edu')">maithily@raisoni.edu</span>
+                            <span class="email-chip border-red-200 text-red-600 bg-red-50" onclick="autoFillEmail('riya.s@raisoni.edu')">riya.s@raisoni.edu</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="performLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all shadow-lg">Login to Portal</button>
+            </div>
         </div>
     </div>
 
-    <main class="flex-1 overflow-y-auto p-6 md:p-8" id="main-content">
-        
-        <div id="view-student" class="block">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="glass-panel neon-border p-6 rounded-2xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-sky-500/20 blur-2xl rounded-full -mr-8 -mt-8"></div>
-                    <p class="text-slate-400 text-sm font-medium mb-1 uppercase tracking-wider">Health Score</p>
-                    <div class="flex items-end gap-2">
-                        <h3 id="ui-health-score" class="text-5xl font-bold text-white">--</h3>
-                        <span class="text-lg text-slate-500 mb-1">/100</span>
-                    </div>
-                </div>
-                <div class="glass-panel p-6 rounded-2xl">
-                    <p class="text-slate-400 text-sm font-medium mb-1 uppercase tracking-wider">Attendance</p>
-                    <h3 id="ui-attendance" class="text-4xl font-bold text-white mb-2">--%</h3>
-                    <div class="w-full bg-slate-800 rounded-full h-1 mt-4"><div id="bar-att" class="bg-sky-400 h-1 rounded-full transition-all duration-1000" style="width: 0%"></div></div>
-                </div>
-                <div class="glass-panel p-6 rounded-2xl">
-                    <p class="text-slate-400 text-sm font-medium mb-1 uppercase tracking-wider">Tasks</p>
-                    <h3 id="ui-tasks" class="text-4xl font-bold text-white mb-2">--</h3>
-                    <div class="w-full bg-slate-800 rounded-full h-1 mt-4"><div id="bar-task" class="bg-indigo-400 h-1 rounded-full transition-all duration-1000" style="width: 0%"></div></div>
-                </div>
-                <div class="glass-panel p-6 rounded-2xl flex flex-col justify-center border-l-4" id="ui-risk-box">
-                    <p class="text-slate-400 text-sm font-medium mb-1 uppercase tracking-wider">Risk Assessment</p>
-                    <h3 id="ui-risk" class="text-2xl font-bold text-white mt-1">Initializing...</h3>
+    <!-- 2. MAIN APPLICATION -->
+    <div id="app-layout" class="app-layout flex">
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between">
+            <div>
+                <div class="h-16 flex items-center px-6 border-b border-slate-200 mb-4">
+                    <i class="fa-solid fa-layer-group text-2xl text-blue-600 mr-2"></i>
+                    <span class="text-xl font-bold text-slate-800">InternSync</span>
                 </div>
             </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div class="lg:col-span-5 space-y-6">
-                    <div class="glass-panel p-6 rounded-2xl">
-                        <h3 class="text-lg font-semibold mb-2 flex items-center">
-                            <i class="fa-solid fa-code-commit text-sky-400 mr-2"></i> Submit Evidence
-                        </h3>
-                        <p class="text-xs text-slate-400 mb-4">Paste student report to run through NLP extraction engine.</p>
-                        <textarea id="report-input" rows="4" class="w-full p-4 rounded-xl text-sm" placeholder="e.g. Added a MongoDB database connection and wrote SQL queries for reporting. Implemented FastAPI routes."></textarea>
-                        <button onclick="submitReport()" id="submit-btn" class="mt-4 w-full py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-xl font-bold tracking-wide shadow-lg shadow-sky-500/25 transition-all">
-                            <i class="fa-solid fa-brain mr-2"></i> RUN AI ANALYSIS
-                        </button>
+            <div class="p-4 border-t border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white"><i class="fa-solid fa-user"></i></div>
+                    <div>
+                        <p id="sidebar-user-name" class="text-sm font-bold text-slate-700">Role</p>
+                        <p class="text-xs text-slate-500">G H Raisoni Univ</p>
                     </div>
+                </div>
+            </div>
+        </aside>
 
-                    <div class="glass-panel p-6 rounded-2xl h-64 flex flex-col">
-                        <h3 class="text-sm font-semibold mb-4 text-slate-300 uppercase tracking-wider flex items-center">
-                            <i class="fa-solid fa-terminal mr-2"></i> AI Activity Terminal
-                        </h3>
-                        <div id="ai-logs" class="flex-1 overflow-y-auto space-y-3 font-mono text-xs text-slate-400">
-                            <div>> System initialized. Waiting for input...</div>
+        <main class="flex-1 flex flex-col bg-slate-50">
+            <header class="h-16 bg-white border-b border-slate-200 flex justify-between items-center px-8">
+                <div>
+                    <h1 class="text-xl font-bold text-slate-800" id="header-title">Hub</h1>
+                    <p class="text-xs text-blue-600 font-semibold">G H Raisoni University x TechNova Solutions</p>
+                </div>
+                <button onclick="logout()" class="text-sm font-semibold text-slate-500 hover:text-red-500"><i class="fa-solid fa-power-off mr-1"></i> Logout</button>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-8 space-y-6" id="view-container">
+                
+                <!-- HR / EMPLOYER VIEW -->
+                <div id="view-employer" class="hidden space-y-8">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800 mb-3">1. Initial Hiring (ATS Verification + AI Readiness)</h2>
+                        <div class="glass-card overflow-hidden">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-800 text-white"><tr>
+                                    <th class="p-4 text-xs">Candidate Info</th><th class="p-4 text-xs text-center">CGPA</th><th class="p-4 text-xs text-center">Aptitude</th><th class="p-4 text-xs text-center">Coding</th><th class="p-4 text-xs text-center">AI Readiness Tag</th><th class="p-4 text-xs text-center">HR Decision</th>
+                                </tr></thead>
+                                <tbody id="ats-table-body" class="divide-y divide-slate-200 bg-white"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800 mb-3 border-t pt-6">2. Final Full-Time PPO Issuance (Post-Internship)</h2>
+                        <div class="glass-card overflow-hidden">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-blue-900 text-white"><tr>
+                                    <th class="p-4 text-xs">Intern Info</th><th class="p-4 text-xs">Assigned Mentor</th><th class="p-4 text-xs text-center">Mentor Evaluation</th><th class="p-4 text-xs text-center">Final HR PPO Action</th>
+                                </tr></thead>
+                                <tbody id="ppo-table-body" class="divide-y divide-slate-200 bg-white"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-7 space-y-6">
-                    <div class="glass-panel p-6 rounded-2xl flex gap-6">
-                        <div class="w-1/2">
-                            <h3 class="text-lg font-semibold mb-2 flex items-center">
-                                <i class="fa-solid fa-radar text-indigo-400 mr-2"></i> Skill Alignment Radar
+                <!-- MENTOR VIEW -->
+                <div id="view-mentor" class="hidden">
+                    <h2 class="text-lg font-bold text-slate-800 mb-3">Assigned Interns & Role-Specific 24 Tasks</h2>
+                    <div class="glass-card overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-indigo-900 text-white"><tr>
+                                <th class="p-4 text-xs">Intern</th><th class="p-4 text-xs">Target Role</th><th class="p-4 text-xs text-center">AI Readiness Tag</th><th class="p-4 text-xs text-center">Tasks Completed</th><th class="p-4 text-xs text-center">Final PPO Sign-off</th>
+                            </tr></thead>
+                            <tbody id="mentor-table-body" class="divide-y divide-slate-200 bg-white"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TPO VIEW -->
+                <div id="view-tpo" class="hidden">
+                    <h2 class="text-lg font-bold text-slate-800 mb-3">University Placement & Risk Analytics Portal</h2>
+                    <div class="glass-card overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-800 text-white"><tr>
+                                <th class="p-4 text-xs">Candidate</th><th class="p-4 text-xs">Role</th><th class="p-4 text-xs text-center">AI Risk Status</th><th class="p-4 text-xs text-center">Lifecycle Status</th>
+                            </tr></thead>
+                            <tbody id="tpo-table-body" class="divide-y divide-slate-200 bg-white"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- STUDENT VIEW -->
+                <div id="view-student" class="hidden space-y-6">
+                    <div class="glass-card p-6 flex justify-between items-center bg-white border-l-4 border-blue-500">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800" id="student-role">--</h2>
+                            <p class="text-sm font-semibold text-slate-500 mt-1">Lifecycle Status: <span id="student-status-text" class="text-blue-600 font-bold">--</span></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs font-semibold text-slate-400 uppercase mb-2">Official Letters Vault</p>
+                            <div id="student-letters-container" class="flex flex-col gap-2 items-end">
+                                <span class="text-xs text-slate-400 italic">No letters issued yet.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Automated Passport Section -->
+                    <div class="glass-card p-6 border-l-4 border-indigo-500 bg-white shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                                <i class="fa-solid fa-id-card text-indigo-600 mr-2"></i> AI Automated Internship Passport
                             </h3>
-                            <div class="relative h-64 w-full">
-                                <canvas id="skillRadar"></canvas>
-                            </div>
+                            <span id="passport-badge" class="px-3 py-1 rounded text-xs font-bold bg-amber-100 text-amber-700">Locked (Waiting HR Decision)</span>
                         </div>
-                        <div class="w-1/2 flex flex-col border-l border-slate-700 pl-6">
-                            <h3 class="text-sm font-semibold mb-4 text-slate-300 uppercase tracking-wider">Verified Profile</h3>
-                            <div class="flex-1 overflow-y-auto pr-2">
-                                <div id="skills-container" class="space-y-2"></div>
-                            </div>
-                            <div class="mt-4 pt-4 border-t border-slate-800">
-                                <h3 class="text-xs font-semibold mb-2 text-slate-500 uppercase">AI Recommendation Action</h3>
-                                <div id="ui-recommendation" class="p-3 bg-sky-500/10 border border-sky-500/20 text-sky-400 rounded-lg text-sm font-medium">
-                                    Standby for analysis...
-                                </div>
-                            </div>
+                        <div id="passport-box" class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm text-slate-500 italic">
+                            Passport is currently locked. It will be generated automatically upon approval from Company HR.
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <div id="view-mentor" class="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="glass-panel p-6 rounded-2xl border-l-4 border-amber-400">
-                    <p class="text-slate-400 text-sm font-medium uppercase">Pending Reports</p>
-                    <h3 id="mentor-reports" class="text-4xl font-bold text-white mt-2">--</h3>
-                </div>
-                <div class="glass-panel p-6 rounded-2xl border-l-4 border-rose-500">
-                    <p class="text-slate-400 text-sm font-medium uppercase">At-Risk Students</p>
-                    <h3 id="mentor-risk" class="text-4xl font-bold text-white mt-2">--</h3>
-                </div>
-                <div class="glass-panel p-6 rounded-2xl border-l-4 border-sky-400">
-                    <p class="text-slate-400 text-sm font-medium uppercase">Tasks to Approve</p>
-                    <h3 id="mentor-tasks" class="text-4xl font-bold text-white mt-2">--</h3>
-                </div>
-            </div>
-            
-            <div class="glass-panel p-6 rounded-2xl mb-8">
-                <h3 class="text-lg font-semibold mb-4 flex items-center">
-                    <i class="fa-solid fa-clipboard-check text-amber-400 mr-2"></i> Human-in-the-Loop Approval Queue
-                </h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-300">
-                        <thead class="bg-slate-900/50 text-slate-400 uppercase text-xs">
-                            <tr>
-                                <th class="p-3">Student ID</th>
-                                <th class="p-3">Extracted Skills</th>
-                                <th class="p-3">Confidence</th>
-                                <th class="p-3">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="mentor-queue-body">
-                            <tr class="border-b border-slate-800">
-                                <td class="p-3 font-mono text-sky-400">STU-101 (Demo)</td>
-                                <td class="p-3" id="mentor-queue-skills">Submit report on student page first</td>
-                                <td class="p-3" id="mentor-queue-conf">--</td>
-                                <td class="p-3">
-                                    <button onclick="approveQueueItem()" class="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded text-xs font-semibold hover:bg-emerald-500/30">Approve Live</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="view-admin" class="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="glass-panel p-6 rounded-2xl border-l-4 border-indigo-500">
-                    <p class="text-slate-400 text-sm font-medium uppercase">Total Interns</p>
-                    <h3 id="admin-interns" class="text-4xl font-bold text-white mt-2">--</h3>
-                </div>
-                <div class="glass-panel p-6 rounded-2xl border-l-4 border-emerald-400">
-                    <p class="text-slate-400 text-sm font-medium uppercase">Avg Health Score</p>
-                    <h3 id="admin-health" class="text-4xl font-bold text-white mt-2">--</h3>
-                </div>
-                <div class="glass-panel p-6 rounded-2xl border-l-4 border-sky-400">
-                    <p class="text-slate-400 text-sm font-medium uppercase">Active Companies</p>
-                    <h3 id="admin-companies" class="text-4xl font-bold text-white mt-2">--</h3>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass-panel p-6 rounded-2xl">
-                    <h3 class="text-lg font-semibold mb-4 flex items-center">
-                        <i class="fa-solid fa-chart-pie text-indigo-400 mr-2"></i> Institutional Skill Distribution
-                    </h3>
-                    <div class="relative h-64 w-full flex items-center justify-center">
-                        <canvas id="adminDoughnut"></canvas>
+                    <!-- Task Checklist with Manual Select & Select All -->
+                    <div id="student-workspace" class="hidden glass-card p-6 border-l-4 border-amber-500 bg-white">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800">Role-Specific 24-Week Task Checklist</h3>
+                                <p class="text-xs text-slate-500">Assigned Mentor: <b id="student-mentor-name"></b></p>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <label class="flex items-center gap-2 text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg border cursor-pointer hover:bg-slate-200">
+                                    <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)" class="w-4 h-4 text-blue-600 rounded"> Select All 24 Tasks
+                                </label>
+                                <p class="text-sm font-mono font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded border border-emerald-200"><span id="task-count">0</span> / 24 Completed</p>
+                            </div>
+                        </div>
+                        <div id="task-list-container" class="space-y-3 max-h-96 overflow-y-auto pr-3 border border-slate-100 p-4 rounded-xl bg-slate-50"></div>
                     </div>
                 </div>
-                <div class="glass-panel p-6 rounded-2xl">
-                    <h3 class="text-lg font-semibold mb-4 flex items-center">
-                        <i class="fa-solid fa-triangle-exclamation text-rose-400 mr-2"></i> Department Risk Watchlist
-                    </h3>
-                    <div class="space-y-4">
-                        <div>
-                            <div class="flex justify-between text-sm mb-1"><span class="text-slate-300">Artificial Intelligence</span><span class="text-emerald-400">Low Risk (4%)</span></div>
-                            <div class="w-full bg-slate-800 rounded-full h-2"><div class="bg-emerald-400 h-2 rounded-full" style="width: 15%"></div></div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-sm mb-1"><span class="text-slate-300">Computer Engineering</span><span class="text-amber-400">Medium Risk (18%)</span></div>
-                            <div class="w-full bg-slate-800 rounded-full h-2"><div class="bg-amber-400 h-2 rounded-full" style="width: 45%"></div></div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-sm mb-1"><span class="text-slate-300">Information Technology</span><span class="text-emerald-400">Low Risk (8%)</span></div>
-                            <div class="w-full bg-slate-800 rounded-full h-2"><div class="bg-emerald-400 h-2 rounded-full" style="width: 20%"></div></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-    </main>
+            </div>
+        </main>
+    </div>
+
+    <!-- EMAIL MODAL -->
+    <div id="email-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden border border-slate-300">
+            <div class="bg-slate-100 border-b border-slate-200 p-4 flex justify-between items-center">
+                <div class="flex items-center text-slate-600 font-semibold"><i class="fa-solid fa-envelope text-blue-600 mr-2"></i> Official Email Dispatch</div>
+                <button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-4 border-b border-slate-100 text-sm space-y-2 font-mono bg-white">
+                <div class="flex"><span class="w-16 text-slate-400">To:</span> <span id="email-to" class="text-blue-600 font-semibold">--</span></div>
+                <div class="flex"><span class="w-16 text-slate-400">Subject:</span> <span id="email-subject" class="text-slate-800 font-bold">--</span></div>
+            </div>
+            <div class="p-6 text-sm text-slate-700 whitespace-pre-wrap bg-white leading-relaxed font-sans" id="email-body"></div>
+            <div class="p-4 bg-slate-50 text-right"><button onclick="closeEmailModal()" class="btn-primary">Close Viewer</button></div>
+        </div>
+    </div>
 
     <script>
         const API_BASE = "http://localhost:8000/api/v1";
-        const TARGET_SKILLS = ["python", "fastapi", "react", "mongodb", "sql", "docker", "machine learning"];
-        let radarChart, adminDoughnutChart;
-        let lastExtractedSkills = [];
+        let currentStudent = null;
 
-        async function switchRole(role) {
-            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`btn-${role}`).classList.add('active');
-            
-            document.getElementById('view-student').classList.add('hidden');
-            document.getElementById('view-mentor').classList.add('hidden');
-            document.getElementById('view-admin').classList.add('hidden');
-            
-            document.getElementById(`view-${role}`).classList.remove('hidden');
-
-            try {
-                const res = await fetch(`${API_BASE}/dashboard/${role}`);
-                const data = await res.json();
-                
-                if(role === 'student') {
-                    updateDashboard(data.metrics.core_stats, data.metrics.health_score, data.metrics.risk_status);
-                    renderSkills(data.metrics.core_stats.verified_skills);
-                    updateRadarChart(data.metrics.core_stats.verified_skills);
-                } else if(role === 'mentor') {
-                    document.getElementById('mentor-reports').innerText = data.metrics.pending_reports;
-                    document.getElementById('mentor-risk').innerText = data.metrics.at_risk_students;
-                    document.getElementById('mentor-tasks').innerText = data.metrics.tasks_to_approve;
-                    updateMentorQueue();
-                } else if(role === 'admin') {
-                    document.getElementById('admin-interns').innerText = data.metrics.total_interns;
-                    document.getElementById('admin-health').innerText = data.metrics.avg_health_score;
-                    document.getElementById('admin-companies').innerText = data.metrics.active_companies;
-                    updateAdminDoughnut();
-                }
-            } catch (e) {}
+        function autoFillEmail(email) { 
+            document.getElementById('student-email').value = email; 
+            document.getElementById('login-error').classList.add('hidden');
         }
 
-        async function fetchInitialData() {
-            switchRole('student');
-        }
-
-        async function submitReport() {
-            const btn = document.getElementById("submit-btn");
-            const reportText = document.getElementById("report-input").value;
-            if(!reportText) { addLog("WARNING: Empty report payload.", "text-amber-400"); return; }
-
-            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> PROCESSING...`;
-            btn.classList.add("opacity-75", "cursor-not-allowed");
-            document.getElementById("ai-logs").innerHTML = ""; 
-            
-            addLog("> Initializing NLP Pipeline...", "text-sky-400");
-            setTimeout(() => addLog("> Tokenizing text and matching patterns..."), 600);
-            setTimeout(() => addLog("> Extracting technical entities..."), 1200);
-
-            try {
-                const res = await fetch(`${API_BASE}/submit-report`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        student_id: "STU-101",
-                        report_content: reportText,
-                        target_role_skills: TARGET_SKILLS
-                    })
-                });
-                
-                const responseData = await res.json();
-                const analysis = responseData.analysis_pipeline;
-                lastExtractedSkills = analysis.new_skills_extracted;
-                
-                setTimeout(() => {
-                    addLog(`> FOUND: ${analysis.new_skills_extracted.length} new skills!`, "text-emerald-400 font-bold");
-                    addLog(`> Analyzing gaps against role requirements...`);
-                    document.getElementById("ui-recommendation").innerText = analysis.ai_action;
-                    fetchInitialData(); 
-                    document.getElementById("report-input").value = "";
-                }, 1800);
-
-            } catch (error) {
-                addLog("> SYSTEM FAILURE: Check API connection.", "text-rose-500");
-            } finally {
-                setTimeout(() => {
-                    btn.innerHTML = `<i class="fa-solid fa-brain mr-2"></i> RUN AI ANALYSIS`;
-                    btn.classList.remove("opacity-75", "cursor-not-allowed");
-                }, 2000);
+        function toggleLoginFields() {
+            const role = document.getElementById('login-role').value;
+            document.getElementById('login-error').classList.add('hidden');
+            if (role === 'student') { 
+                document.getElementById('student-auth').classList.remove('hidden'); 
+                document.getElementById('general-auth').classList.add('hidden'); 
+            } else { 
+                document.getElementById('student-auth').classList.add('hidden'); 
+                document.getElementById('general-auth').classList.remove('hidden'); 
             }
         }
 
-        function updateMentorQueue() {
-            if(lastExtractedSkills.length > 0) {
-                const skillNames = lastExtractedSkills.map(s => `${s.skill} (${s.confidence}%)`).join(', ');
-                document.getElementById('mentor-queue-skills').innerText = skillNames;
-                document.getElementById('mentor-queue-conf').innerText = 'Verified';
+        function showView(viewId) {
+            ['view-employer', 'view-mentor', 'view-tpo', 'view-student'].forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        function logout() { 
+            document.getElementById('app-layout').style.display = 'none'; 
+            document.getElementById('login-screen').style.display = 'flex'; 
+        }
+
+        async function performLogin() {
+            const role = document.getElementById('login-role').value;
+            const errorBox = document.getElementById('login-error');
+            errorBox.classList.add('hidden');
+
+            try {
+                if (role === 'student') {
+                    const emailInput = document.getElementById('student-email').value.trim();
+                    if (!emailInput) {
+                        errorBox.innerText = "Please enter or select a student email ID.";
+                        errorBox.classList.remove('hidden');
+                        return;
+                    }
+                    
+                    const res = await fetch(`${API_BASE}/dashboard/student?email=${encodeURIComponent(emailInput)}`);
+                    if (!res.ok) {
+                        throw new Error("Student email not found in database. Use quick pills below.");
+                    }
+                    currentStudent = await res.json();
+                    
+                    document.getElementById('sidebar-user-name').innerText = currentStudent.data.student;
+                    document.getElementById('header-title').innerText = "Candidate Portal";
+                    showView('view-student');
+                    renderStudentData();
+                } else {
+                    document.getElementById('sidebar-user-name').innerText = role.toUpperCase();
+                    document.getElementById('header-title').innerText = `${role.toUpperCase()} Dashboard`;
+                    
+                    if (role === 'employer') { showView('view-employer'); fetchEmployerData(); }
+                    else if (role === 'mentor') { showView('view-mentor'); fetchMentorData(); }
+                    else if (role === 'tpo') { showView('view-tpo'); fetchTpoData(); }
+                }
+
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+
+            } catch (err) {
+                errorBox.innerText = err.message || "Failed to connect to backend server. Make sure FastAPI is running on port 8000.";
+                errorBox.classList.add('hidden');
             }
         }
 
-        function approveQueueItem() {
-            alert('Skills approved by mentor successfully! Profile updated.');
-            document.getElementById('mentor-queue-skills').innerText = 'No pending approvals';
-            document.getElementById('mentor-queue-conf').innerText = '--';
+        function getRiskBadgeHTML(risk) {
+            let colorClass = "bg-blue-100 text-blue-700 border-blue-200";
+            if(risk.color === "emerald") colorClass = "bg-emerald-100 text-emerald-700 border-emerald-200";
+            if(risk.color === "red") colorClass = "bg-red-100 text-red-700 border-red-200";
+            return `<span class="px-2.5 py-1 rounded-full text-xs font-bold border ${colorClass}">${risk.badge}</span>`;
         }
 
-        function updateAdminDoughnut() {
-            if(adminDoughnutChart) adminDoughnutChart.destroy();
-            const ctx = document.getElementById('adminDoughnut').getContext('2d');
-            adminDoughnutChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Python', 'FastAPI', 'MongoDB', 'React', 'SQL'],
-                    datasets: [{
-                        data: [40, 25, 15, 10, 10],
-                        backgroundColor: ['#38bdf8', '#818cf8', '#34d399', '#f59e0b', '#f43f5e'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12 } } }
-                }
+        async function fetchEmployerData() {
+            const res = await fetch(`${API_BASE}/dashboard/employer`);
+            const data = (await res.json()).data;
+            
+            const atsBody = document.getElementById('ats-table-body');
+            atsBody.innerHTML = "";
+            data.filter(a => a.status === "Recommended by TPO").forEach(app => {
+                atsBody.innerHTML += `<tr>
+                    <td class="p-4 font-bold">${app.student}<br><span class="text-xs font-normal text-slate-500">${app.role}</span></td>
+                    <td class="p-4 text-center">${app.academic_cgpa}</td>
+                    <td class="p-4 text-center">${app.aptitude}%</td>
+                    <td class="p-4 text-center">${app.coding}%</td>
+                    <td class="p-4 text-center">${getRiskBadgeHTML(app.ai_risk)}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="hrAction('${app.id}', 'PROCESS_DECISION', 'APPROVE')" class="w-8 h-8 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-500 hover:text-white"><i class="fa-solid fa-check"></i></button>
+                        <button onclick="hrAction('${app.id}', 'PROCESS_DECISION', 'REJECT')" class="w-8 h-8 rounded bg-red-100 text-red-600 hover:bg-red-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                    </td></tr>`;
+            });
+
+            const ppoBody = document.getElementById('ppo-table-body');
+            ppoBody.innerHTML = "";
+            data.filter(a => a.status === "Mentor_Evaluated").forEach(app => {
+                const badge = app.mentor_decision === "Approve" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700";
+                ppoBody.innerHTML += `<tr>
+                    <td class="p-4 font-bold">${app.student}<br><span class="text-xs font-normal text-slate-500">${app.role}</span></td>
+                    <td class="p-4 text-sm">${app.mentor}</td>
+                    <td class="p-4 text-center"><span class="px-2 py-1 rounded text-xs font-bold ${badge}">${app.mentor_decision}</span></td>
+                    <td class="p-4 text-center">
+                        <button onclick="hrAction('${app.id}', 'HR_FINAL_PPO', 'APPROVE')" class="btn-primary text-xs bg-emerald-600 hover:bg-emerald-700">Issue PPO</button>
+                        <button onclick="hrAction('${app.id}', 'HR_FINAL_PPO', 'REJECT')" class="btn-primary text-xs bg-red-600 hover:bg-red-700">Reject Full-Time</button>
+                    </td></tr>`;
             });
         }
 
-        function updateDashboard(stats, score, risk) {
-            document.getElementById("ui-health-score").innerText = score;
-            document.getElementById("ui-attendance").innerText = `${stats.attendance}%`;
-            document.getElementById("bar-att").style.width = `${stats.attendance}%`;
-            document.getElementById("ui-tasks").innerText = `${stats.tasks_completed}/${stats.tasks_total}`;
-            document.getElementById("bar-task").style.width = `${(stats.tasks_completed/stats.tasks_total)*100}%`;
-            
-            const riskEl = document.getElementById("ui-risk");
-            const riskBox = document.getElementById("ui-risk-box");
-            riskEl.innerText = risk;
-            
-            if(risk.includes("High")) {
-                riskEl.className = "text-2xl font-bold text-rose-500 mt-1";
-                riskBox.style.borderLeftColor = "#f43f5e";
-            } else if(risk.includes("Medium")) {
-                riskEl.className = "text-2xl font-bold text-amber-500 mt-1";
-                riskBox.style.borderLeftColor = "#f59e0b";
-            } else {
-                riskEl.className = "text-2xl font-bold text-emerald-400 mt-1";
-                riskBox.style.borderLeftColor = "#34d399";
-            }
+        async function hrAction(appId, actionType, decision) {
+            const res = await fetch(`${API_BASE}/action`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ action_type: actionType, target_id: appId, data: { decision: decision } })
+            });
+            const response = await res.json();
+            showEmailModal(response.email_data.to, response.email_data.subject, response.email_data.body);
+            fetchEmployerData();
         }
 
-        function renderSkills(skills) {
-            const container = document.getElementById("skills-container");
-            container.innerHTML = "";
-            skills.forEach(skillObj => {
-                const el = document.createElement("div");
-                el.className = "flex justify-between items-center p-2.5 rounded-lg bg-slate-800/50 border border-slate-700/50 mb-2";
-                el.innerHTML = `
-                    <div class="flex items-center capitalize text-sm font-medium text-slate-200">
-                        <i class="fa-solid fa-check text-emerald-400 mr-2"></i> ${skillObj.skill}
+        async function fetchMentorData() {
+            const res = await fetch(`${API_BASE}/dashboard/mentor`);
+            const data = (await res.json()).data;
+            const body = document.getElementById('mentor-table-body');
+            body.innerHTML = "";
+            
+            data.filter(a => ["Offered", "Mentor_Evaluated", "PPO_Offered", "PPO_Rejected"].includes(a.status)).forEach(app => {
+                const completedTasks = app.tasks.filter(t => t.status === "Completed").length;
+                let actionsHTML = "";
+                if(app.status === "Offered") {
+                    actionsHTML = `
+                        <button onclick="mentorAction('${app.id}', 'Approve')" class="btn-primary text-xs bg-emerald-600">Approve for PPO</button>
+                        <button onclick="mentorAction('${app.id}', 'Reject')" class="btn-primary text-xs bg-red-600 mt-1">Reject</button>
+                    `;
+                } else {
+                    actionsHTML = `<span class="text-xs font-bold text-slate-500">Evaluation Completed</span>`;
+                }
+
+                body.innerHTML += `<tr>
+                    <td class="p-4 font-bold">${app.student}</td>
+                    <td class="p-4 text-sm font-semibold text-blue-600">${app.role}</td>
+                    <td class="p-4 text-center">${getRiskBadgeHTML(app.ai_risk)}</td>
+                    <td class="p-4 text-center font-bold text-amber-600">${completedTasks} / 24 Done</td>
+                    <td class="p-4 text-center">${actionsHTML}</td></tr>`;
+            });
+        }
+
+        async function mentorAction(appId, decision) {
+            await fetch(`${API_BASE}/action`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ action_type: "MENTOR_DECISION", target_id: appId, data: { decision: decision } })
+            });
+            alert(`Candidate marked as: ${decision}`);
+            fetchMentorData();
+        }
+
+        async function fetchTpoData() {
+            const res = await fetch(`${API_BASE}/dashboard/tpo`);
+            const data = (await res.json()).data;
+            const body = document.getElementById('tpo-table-body');
+            body.innerHTML = "";
+            data.forEach(app => {
+                body.innerHTML += `<tr>
+                    <td class="p-4 font-bold">${app.student}</td>
+                    <td class="p-4 text-sm">${app.role}</td>
+                    <td class="p-4 text-center">${getRiskBadgeHTML(app.ai_risk)}</td>
+                    <td class="p-4 text-center text-xs font-bold text-blue-600">${app.status}</td>
+                </tr>`;
+            });
+        }
+
+        function renderStudentData() {
+            const app = currentStudent.data;
+            document.getElementById('student-role').innerText = app.role;
+            
+            let statusText = app.status;
+            if(app.status === "PPO_Offered") statusText = "Full-Time Placement Offered 🏆";
+            else if(app.status === "Mentor_Evaluated") statusText = "Mentor Evaluated (Pending HR Final Decision)";
+            document.getElementById('student-status-text').innerText = statusText;
+            
+            const letterContainer = document.getElementById('student-letters-container');
+            letterContainer.innerHTML = "";
+            if (app.letters && app.letters.length > 0) {
+                app.letters.forEach(letter => {
+                    const btn = document.createElement('button');
+                    btn.className = "bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-200 text-xs py-2 px-4 rounded-lg font-semibold transition shadow-sm w-full text-left";
+                    btn.innerHTML = `<i class="fa-solid fa-envelope-open-text mr-2"></i> ${letter.title}`;
+                    btn.onclick = () => showEmailModal(app.email, letter.subject, letter.body);
+                    letterContainer.appendChild(btn);
+                });
+            } else {
+                letterContainer.innerHTML = `<span class="text-xs text-slate-400 italic">No official letters issued yet.</span>`;
+            }
+
+            const completedTasksCount = app.tasks ? app.tasks.filter(t => t.status === "Completed").length : 0;
+            const taskProgressPercentage = Math.round((completedTasksCount / 24) * 100);
+
+            // Sync Master Select All checkbox state
+            const selectAllCheckbox = document.getElementById('select-all-checkbox');
+            if(selectAllCheckbox) {
+                selectAllCheckbox.checked = (completedTasksCount === 24);
+            }
+
+            const badge = document.getElementById('passport-badge');
+            const passportBox = document.getElementById('passport-box');
+
+            if (app.passport_generated) {
+                badge.className = "px-3 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-700";
+                badge.innerText = "Verified & Unlocked";
+                passportBox.className = "bg-emerald-50/60 p-4 rounded-xl border border-emerald-200 text-sm text-slate-700 space-y-3";
+                passportBox.innerHTML = `
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><span class="text-xs text-slate-400 block uppercase font-bold">Name of Intern</span><b class="text-slate-900 text-base">${app.student}</b></div>
+                        <div><span class="text-xs text-slate-400 block uppercase font-bold">Fit for Targeted Role</span><b class="text-blue-600 text-base">${app.role}</b></div>
                     </div>
-                    <div class="text-xs font-mono px-2 py-1 bg-slate-900 rounded text-slate-400 border border-slate-700">
-                        Conf: ${skillObj.confidence}%
+                    <div class="border-t border-emerald-200 pt-3 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-slate-400 block uppercase font-bold mb-1">AI Risk & Readiness Status</span>
+                            ${getRiskBadgeHTML(app.ai_risk)}
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 block uppercase font-bold mb-1">Task Progress</span>
+                            <span class="text-amber-700 bg-amber-100 px-2.5 py-1 rounded text-xs font-mono font-bold">${completedTasksCount}/24 (${taskProgressPercentage}%)</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-emerald-200 pt-3">
+                        <span class="text-xs text-slate-400 block uppercase font-bold mb-1">Evaluation Assessment Scores</span>
+                        <div class="flex flex-wrap gap-3 text-xs font-mono font-bold">
+                            <span class="text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded">CGPA: ${app.academic_cgpa}</span>
+                            <span class="text-blue-700 bg-blue-100 px-2.5 py-1 rounded">Aptitude: ${app.aptitude}%</span>
+                            <span class="text-indigo-700 bg-indigo-100 px-2.5 py-1 rounded">Coding: ${app.coding}%</span>
+                            <span class="text-purple-700 bg-purple-100 px-2.5 py-1 rounded">Skills: ${app.skills_match}%</span>
+                        </div>
                     </div>
                 `;
-                container.appendChild(el);
+            } else if (app.status === "Rejected") {
+                badge.className = "px-3 py-1 rounded text-xs font-bold bg-red-100 text-red-700";
+                badge.innerText = "Application Rejected";
+                passportBox.className = "bg-red-50 p-4 rounded-xl border border-red-200 text-sm text-red-600 italic";
+                passportBox.innerHTML = "Passport generation denied as application was rejected by Company HR.";
+            } else {
+                badge.className = "px-3 py-1 rounded text-xs font-bold bg-amber-100 text-amber-700";
+                badge.innerText = "Locked (Waiting HR Decision)";
+                passportBox.className = "bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm text-slate-500 italic";
+                passportBox.innerHTML = "Passport is currently locked. It will be generated automatically upon approval from Company HR.";
+            }
+
+            if (["Offered", "Mentor_Evaluated", "PPO_Offered", "PPO_Rejected"].includes(app.status)) {
+                document.getElementById('student-workspace').classList.remove('hidden');
+                document.getElementById('student-mentor-name').innerText = app.mentor;
+                
+                const taskContainer = document.getElementById('task-list-container');
+                taskContainer.innerHTML = "";
+                let completedCount = 0;
+
+                app.tasks.forEach(task => {
+                    const isCompleted = task.status === "Completed";
+                    if(isCompleted) completedCount++;
+
+                    let actionHTML = "";
+                    const isLocked = ["Mentor_Evaluated", "PPO_Offered", "PPO_Rejected"].includes(app.status);
+
+                    actionHTML = `
+                        <label class="flex items-center gap-2 cursor-pointer text-xs font-bold ${isCompleted ? 'text-emerald-600' : 'text-slate-600'}">
+                            <input type="checkbox" ${isCompleted ? 'checked' : ''} ${isLocked ? 'disabled' : ''} onchange="toggleTask(${task.id}, this.checked)" class="w-4 h-4 text-blue-600 rounded">
+                            ${isCompleted ? 'Completed' : 'Mark Done'}
+                        </label>
+                    `;
+
+                    taskContainer.innerHTML += `
+                        <div class="flex justify-between items-center p-3 border border-slate-200 rounded-lg ${isCompleted ? 'bg-emerald-50/40 border-emerald-200' : 'bg-white shadow-sm'}">
+                            <div>
+                                <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">${task.week}</span>
+                                <p class="text-sm font-semibold text-slate-800">${task.title}</p>
+                            </div>
+                            <div>${actionHTML}</div>
+                        </div>
+                    `;
+                });
+                document.getElementById('task-count').innerText = completedCount;
+            } else {
+                document.getElementById('student-workspace').classList.add('hidden');
+            }
+        }
+
+        async function toggleTask(taskId, isChecked) {
+            const status = isChecked ? "Completed" : "Pending";
+            await fetch(`${API_BASE}/action`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ action_type: "SUBMIT_TASK", target_id: currentStudent.data.id, data: { task_id: taskId, status: status } })
             });
+            const email = document.getElementById('student-email').value;
+            const res = await fetch(`${API_BASE}/dashboard/student?email=${encodeURIComponent(email)}`);
+            currentStudent = await res.json();
+            renderStudentData();
         }
 
-        function updateRadarChart(verifiedSkills) {
-            const userSkills = verifiedSkills.map(s => s.skill.toLowerCase());
-            const dataPoint = TARGET_SKILLS.map(ts => userSkills.includes(ts.toLowerCase()) ? 100 : 20);
-
-            if(radarChart) radarChart.destroy();
-            
-            const ctx = document.getElementById('skillRadar').getContext('2d');
-            Chart.defaults.color = '#64748b';
-            Chart.defaults.font.family = 'Space Grotesk';
-
-            radarChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: TARGET_SKILLS.map(s => s.toUpperCase()),
-                    datasets: [{
-                        label: 'Student Skill Graph',
-                        data: dataPoint,
-                        backgroundColor: 'rgba(56, 189, 248, 0.2)',
-                        borderColor: '#38bdf8',
-                        pointBackgroundColor: '#818cf8',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#38bdf8',
-                        borderWidth: 2,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            pointLabels: { color: '#94a3b8', font: { size: 10 } },
-                            ticks: { display: false, min: 0, max: 100 }
-                        }
-                    },
-                    plugins: { legend: { display: false } }
-                }
+        async function toggleSelectAll(masterCheckbox) {
+            const selectAll = masterCheckbox.checked;
+            await fetch(`${API_BASE}/action`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ action_type: "BULK_UPDATE_TASKS", target_id: currentStudent.data.id, data: { select_all: selectAll } })
             });
+            const email = document.getElementById('student-email').value;
+            const res = await fetch(`${API_BASE}/dashboard/student?email=${encodeURIComponent(email)}`);
+            currentStudent = await res.json();
+            renderStudentData();
         }
 
-        function addLog(message, colorClass = "text-slate-400") {
-            const logs = document.getElementById("ai-logs");
-            const entry = document.createElement("div");
-            entry.className = `log-entry ${colorClass}`;
-            const time = new Date().toLocaleTimeString([], {hour12: false});
-            entry.innerHTML = `<span class="text-slate-600">[${time}]</span> ${message}`;
-            logs.appendChild(entry);
-            logs.scrollTop = logs.scrollHeight;
+        function showEmailModal(to, subject, body) {
+            document.getElementById('email-to').innerText = to;
+            document.getElementById('email-subject').innerText = subject;
+            document.getElementById('email-body').innerText = body;
+            document.getElementById('email-modal').classList.remove('hidden');
         }
-
-        window.onload = fetchInitialData;
+        function closeEmailModal() { document.getElementById('email-modal').classList.add('hidden'); }
     </script>
 </body>
 </html>

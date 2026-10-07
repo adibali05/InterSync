@@ -1,5 +1,4 @@
 from pymongo import MongoClient
-<<<<<<< HEAD
 import os
 
 MONGO_URI = "mongodb+srv://adibmuzammilali_db_user:7NkYs5xl7os7zFPV@cluster0.s8zrt8j.mongodb.net/?appName=Cluster0"
@@ -12,7 +11,7 @@ passports_collection = db["passports"]
 
 def get_db():
     return db
-=======
+
 import certifi
 
 # Yahan apna wahi purana MongoDB Atlas wala link rehne dena
@@ -34,4 +33,4 @@ def init_db():
         })
         print("MongoDB initialized with dummy data.")
         
->>>>>>> 4700175d8c69692f1e5f4685fcba945213552f2e
+

@@ -1,5 +1,9 @@
-<<<<<<< HEAD
 import re
+
+try:
+    from transformers import pipeline
+except ImportError:
+    pipeline = None
 
 REQUIRED_SKILLS = ["python", "fastapi", "react", "mongodb", "sql", "machine learning", "nlp", "docker"]
 
@@ -21,7 +25,8 @@ def extract_skills(text: str) -> list:
     return list(set(found_skills))
 
 def detect_skill_gap(demonstrated_skills: list, role_required_skills: list) -> list:
-    return [skill for skill in role_required_skills if skill not in demonstrated_skills]
+    demonstrated = {skill.lower() for skill in demonstrated_skills}
+    return [skill for skill in role_required_skills if skill.lower() not in demonstrated]
 
 def generate_recommendation(risk_level: str, skill_gaps: list) -> dict:
     actions = []
@@ -37,17 +42,18 @@ def generate_recommendation(risk_level: str, skill_gaps: list) -> dict:
         "primary_action": actions[0],
         "all_actions": actions
     }
-=======
-from transformers import pipeline
+classifier = None
 
-try:
-    classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
-except Exception as e:
-    print(f"Model loading error: {e}")
-    classifier = None
+if pipeline is not None:
+    try:
+        classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+    except Exception as e:
+        print(f"Model loading error: {e}")
+        classifier = None
+
 
 def score_log_text(text: str):
-    if not classifier:
+    if not text or not classifier:
         return {"technical_score": 0.0, "soft_skills_score": 0.0}
 
     candidate_labels = ["technical development and coding", "communication and management", "irrelevant or empty"]
@@ -70,4 +76,4 @@ def score_log_text(text: str):
             "soft_skills_score": 0.0
         }
     
->>>>>>> 4700175d8c69692f1e5f4685fcba945213552f2e
+

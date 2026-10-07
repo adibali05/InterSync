@@ -1,10 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
-import random
+from typing import Dict, Any, Optional, List
 
-app = FastAPI(title="Smart Internship Engine API")
+app = FastAPI(title="InternSync Enterprise API", version="17.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -14,85 +13,196 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class ReportPayload(BaseModel):
-    student_id: str
-    report_content: str
-    target_role_skills: List[str]
+class ActionPayload(BaseModel):
+    action_type: str
+    target_id: str
+    data: Dict[str, Any]
 
-student_live_data = {
-    "attendance": 10,
-    "tasks_completed": 0,
-    "tasks_total": 10,
-    "report_score": 0,
-    "verified_skills": [],
-    "lifecycle_stage": 5 
+def generate_role_tasks(role: str):
+    role_lower = role.lower()
+    if "ai" in role_lower:
+        modules = [
+            "Python & NumPy Foundations", "Exploratory Data Analysis", "Scikit-Learn Regression Models", 
+            "Classification & Metrics", "Deep Learning Neural Networks", "PyTorch Tensor Operations", 
+            "Convolutional Neural Networks", "Recurrent Neural Networks (RNN)", "Transformers Architecture", 
+            "Hugging Face Fine-Tuning", "RAG & Vector Databases", "LangChain Framework Integration", 
+            "FastAPI Model Serving", "Docker Containerization", "Model Quantization", 
+            "MLOps & CI/CD Pipelines", "Model Monitoring & Drift", "Scalable Cloud Deployment", 
+            "Capstone Project Planning", "Capstone Model Training", "Capstone Evaluation", 
+            "Documentation & Testing", "Security & Ethical AI Audit", "Final Industry Presentation"
+        ]
+    elif "backend" in role_lower:
+        modules = [
+            "Advanced Python & OOP", "FastAPI Core Routing", "Pydantic Data Validation", 
+            "Relational Database Design", "SQLAlchemy ORM Modeling", "PostgreSQL Advanced Queries", 
+            "MongoDB & NoSQL Concepts", "Async/Await Programming", "Authentication & JWT Security", 
+            "Role-Based Access Control", "Unit Testing with Pytest", "API Documentation & Swagger", 
+            "Caching with Redis", "Background Tasks & Celery", "Dockerization of Services", 
+            "CI/CD Pipeline Setup", "Microservices Architecture", "API Rate Limiting", 
+            "Logging & Error Handling", "Performance Load Testing", "Database Indexing & Tuning", 
+            "Cloud Security Protocols", "System Architecture Review", "Final Production Handover"
+        ]
+    elif "data" in role_lower:
+        modules = [
+            "Advanced SQL & Joins", "Pandas & Data Wrangling", "Data Cleaning Techniques", 
+            "Statistical Hypothesis Testing", "Data Visualization (Matplotlib/Seaborn)", "Interactive Dashboards (Tableau/PowerBI)", 
+            "Time Series Forecasting", "Feature Engineering", "A/B Testing Methodologies", 
+            "SQL Performance Tuning", "Big Data Basics (Spark)", "ETL Pipeline Design", 
+            "Customer Segmentation", "Predictive Modeling", "Risk Analysis Framework", 
+            "Data Governance & Privacy", "Business Metric Reporting", "Automated Reporting Scripts", 
+            "Advanced Excel Modeling", "Stakeholder Presentation Prep", "Case Study Analysis", 
+            "Data Quality Auditing", "Enterprise Data Strategy", "Final Analytics Presentation"
+        ]
+    else:
+        modules = [
+            "HTML5 & Semantic Markup", "Advanced CSS & Flexbox/Grid", "Tailwind CSS Framework", 
+            "JavaScript ES6+ Concepts", "DOM Manipulation & Events", "Asynchronous JS & Fetch API", 
+            "React Core Components", "React Hooks & State", "React Router Navigation", 
+            "State Management (Context API)", "Form Validation & Handling", "RESTful API Integration", 
+            "Responsive Web Design", "Performance Optimization", "Web Accessibility (a11y)", 
+            "Component Testing (Jest)", "Git Version Control", "Webpack & Vite Bundlers", 
+            "UI/UX Design Principles", "Cross-Browser Compatibility", "Progressive Web Apps", 
+            "Security Best Practices", "Deployment & Hosting", "Final Portfolio Review"
+        ]
+
+    tasks = []
+    for idx, title in enumerate(modules, start=1):
+        tasks.append({
+            "id": idx,
+            "week": f"Week {idx}",
+            "title": title,
+            "status": "Pending"
+        })
+    return tasks
+
+def calculate_ai_risk_score(app: dict):
+    completed_tasks = sum(1 for t in app["tasks"] if t["status"] == "Completed")
+    avg_score = (app["academic_cgpa"] * 10 + app["aptitude"] + app["coding"] + app["skills_match"]) / 4
+    
+    if avg_score >= 85 and completed_tasks >= 2:
+        return {"level": "Top PPO Material", "color": "emerald", "badge": "🟢 Top Tier Candidate"}
+    elif avg_score >= 70 or completed_tasks >= 1:
+        return {"level": "Stable Performer", "color": "blue", "badge": "🔵 On Track"}
+    else:
+        return {"level": "High Risk / Lagging", "color": "red", "badge": "🔴 Intervention Needed"}
+
+db = {
+    "partnership": "G H Raisoni University Amravati x TechNova Solutions",
+    "applications": [
+        {
+            "id": "APP001", "student": "Adib Ali", "email": "adib.ali@raisoni.edu", "role": "AI Engineer", 
+            "academic_cgpa": 8.5, "aptitude": 92, "coding": 95, "skills_match": 94, "status": "Recommended by TPO",
+            "mentor": "Mr. Vikram (Senior AI Lead)", "tasks": generate_role_tasks("AI Engineer"), "mentor_decision": "Pending", "letters": [], "passport_generated": False
+        },
+        {
+            "id": "APP002", "student": "Anushka", "email": "anushka@raisoni.edu", "role": "Backend Dev", 
+            "academic_cgpa": 8.8, "aptitude": 88, "coding": 91, "skills_match": 90, "status": "Recommended by TPO",
+            "mentor": "Ms. Shruti (Backend Lead)", "tasks": generate_role_tasks("Backend Dev"), "mentor_decision": "Pending", "letters": [], "passport_generated": False
+        },
+        {
+            "id": "APP003", "student": "Maithily", "email": "maithily@raisoni.edu", "role": "Data Analyst", 
+            "academic_cgpa": 9.1, "aptitude": 85, "coding": 88, "skills_match": 89, "status": "Recommended by TPO",
+            "mentor": "Mr. Rahul (Data Science Lead)", "tasks": generate_role_tasks("Data Analyst"), "mentor_decision": "Pending", "letters": [], "passport_generated": False
+        },
+        {
+            "id": "APP004", "student": "Riya Sharma", "email": "riya.s@raisoni.edu", "role": "Frontend Dev", 
+            "academic_cgpa": 6.8, "aptitude": 55, "coding": 45, "skills_match": 50, "status": "Recommended by TPO",
+            "mentor": "Mr. Karan (UI/UX Lead)", "tasks": generate_role_tasks("Frontend Dev"), "mentor_decision": "Pending", "letters": [], "passport_generated": False
+        }
+    ]
 }
 
-def calculate_health_score(attendance, tasks_done, tasks_total, report_score):
-    if tasks_total == 0: return 0
-    task_ratio = tasks_done / tasks_total
-    score = (attendance * 0.4) + (task_ratio * 100 * 0.4) + (report_score * 0.2)
-    return int(score)
-
-def detect_risk(health_score, attendance):
-    if attendance < 50 or health_score < 40: return "High Risk"
-    if 50 <= attendance < 75 or 40 <= health_score < 70: return "Medium Risk"
-    return "Low Risk"
-
-def extract_skills_mock(text):
-    skills_list = ["python", "fastapi", "react", "mongodb", "sql", "docker", "machine learning"]
-    found = [s for s in skills_list if s in text.lower()]
-    return found
-
 @app.get("/api/v1/dashboard/{role}")
-def get_dashboard_data(role: str):
-    if role == "student":
-        health_score = calculate_health_score(
-            student_live_data["attendance"], 
-            student_live_data["tasks_completed"], 
-            student_live_data["tasks_total"], 
-            student_live_data["report_score"]
-        )
-        risk_level = detect_risk(health_score, student_live_data["attendance"])
-        return {
-            "role": "student",
-            "metrics": {
-                "health_score": health_score,
-                "risk_status": risk_level,
-                "core_stats": student_live_data
-            }
-        }
-    elif role == "mentor":
-        return {"role": "mentor", "metrics": {"pending_reports": 12, "at_risk_students": 3, "tasks_to_approve": 8}}
-    elif role == "admin":
-        return {"role": "admin", "metrics": {"total_interns": 245, "avg_health_score": 82, "active_companies": 15}}
+def get_dashboard_data(role: str, email: Optional[str] = None):
+    for app in db["applications"]:
+        app["ai_risk"] = calculate_ai_risk_score(app)
 
-@app.post("/api/v1/submit-report")
-def submit_report(payload: ReportPayload):
-    extracted_raw = extract_skills_mock(payload.report_content)
-    new_skills_with_conf = [{"skill": s, "confidence": random.randint(85, 98)} for s in extracted_raw]
+    if role in ["employer", "mentor"]:
+        return {"status": "success", "partnership": db["partnership"], "data": db["applications"]}
     
-    existing_skill_names = [s["skill"] for s in student_live_data["verified_skills"]]
-    added_skills = [s for s in new_skills_with_conf if s["skill"] not in existing_skill_names]
+    elif role == "tpo":
+        total = len(db["applications"])
+        offered = sum(1 for app in db["applications"] if app["status"] in ["Offered", "Mentor_Evaluated", "PPO_Offered", "PPO_Rejected"])
+        rejected = sum(1 for app in db["applications"] if app["status"] == "Rejected")
+        pending = total - offered - rejected
+        stats = {"total": total, "offered": offered, "rejected": rejected, "pending": pending}
+        return {"status": "success", "partnership": db["partnership"], "stats": stats, "data": db["applications"]}
     
-    student_live_data["verified_skills"].extend(added_skills)
-    student_live_data["tasks_completed"] = min(student_live_data["tasks_completed"] + 1, student_live_data["tasks_total"])
-    student_live_data["report_score"] = min(student_live_data["report_score"] + random.randint(15, 25), 100)
-    student_live_data["attendance"] = min(student_live_data["attendance"] + random.randint(20, 30), 100)
-    
-    health_score = calculate_health_score(
-        student_live_data["attendance"], 
-        student_live_data["tasks_completed"], 
-        student_live_data["tasks_total"], 
-        student_live_data["report_score"]
-    )
-    risk_level = detect_risk(health_score, student_live_data["attendance"])
-    
-    return {
-        "status": "success",
-        "analysis_pipeline": {
-            "new_skills_extracted": added_skills,
-            "health_score_updated": health_score,
-            "ai_action": f"Verified {len(added_skills)} new skills. Advancing to next learning module."
-        }
-    }
+    elif role == "student":
+        if not email:
+            raise HTTPException(status_code=400, detail="Email required")
+        for app in db["applications"]:
+            if app["email"].strip().lower() == email.strip().lower():
+                return {"status": "success", "data": app}
+        raise HTTPException(status_code=404, detail="Student email not found in database.")
+
+@app.post("/api/v1/action")
+def perform_action(payload: ActionPayload):
+    for app in db["applications"]:
+        if app["id"] == payload.target_id:
+            
+            if payload.action_type == "PROCESS_DECISION":
+                decision = payload.data["decision"]
+                app["status"] = "Offered" if decision == "APPROVE" else "Rejected"
+                
+                if decision == "APPROVE":
+                    app["passport_generated"] = True
+                    letter = {
+                        "title": "1. Internship Offer Letter",
+                        "subject": f"Official Internship Offer - {app['role']} at TechNova",
+                        "body": f"Dear {app['student']},\n\nCongratulations! Based on your verification scores (CGPA: {app['academic_cgpa']}, Aptitude: {app['aptitude']}%, Coding: {app['coding']}%), TechNova Solutions is thrilled to offer you the 24-week internship role of {app['role']}.\n\nYou are assigned under mentor {app['mentor']}. Your AI Verified Internship Passport has now been successfully generated.\n\nBest Regards,\nCompany HR, TechNova Solutions"
+                    }
+                    app["letters"].append(letter)
+                else:
+                    app["passport_generated"] = False
+                    letter = {
+                        "title": "Status Update Letter",
+                        "subject": f"Application Update - {app['role']}",
+                        "body": f"Dear {app['student']},\n\nThank you for applying for the {app['role']} position through the G H Raisoni University Amravati placement drive. Unfortunately, your current scores do not meet the criteria for this role.\n\nBest Regards,\nCompany HR, TechNova Solutions"
+                    }
+                    app["letters"].append(letter)
+                    
+                return {"status": "success", "email_data": {"to": app["email"], "subject": letter["subject"], "body": letter["body"]}}
+            
+            elif payload.action_type == "SUBMIT_TASK":
+                task_id = int(payload.data["task_id"])
+                status = payload.data.get("status", "Completed")
+                for task in app["tasks"]:
+                    if task["id"] == task_id:
+                        task["status"] = status
+                return {"status": "success", "message": "Task updated."}
+
+            elif payload.action_type == "BULK_UPDATE_TASKS":
+                select_all = payload.data.get("select_all", False)
+                new_status = "Completed" if select_all else "Pending"
+                for task in app["tasks"]:
+                    task["status"] = new_status
+                return {"status": "success", "message": "Bulk tasks updated."}
+            
+            elif payload.action_type == "MENTOR_DECISION":
+                app["mentor_decision"] = payload.data["decision"]
+                app["status"] = "Mentor_Evaluated"
+                return {"status": "success"}
+
+            elif payload.action_type == "HR_FINAL_PPO":
+                decision = payload.data["decision"]
+                app["status"] = "PPO_Offered" if decision == "APPROVE" else "PPO_Rejected"
+                
+                if decision == "APPROVE":
+                    letter = {
+                        "title": "2. Full-Time Placement Offer Letter (PPO)",
+                        "subject": f"Full-Time Junior Role Offer - TechNova Solutions",
+                        "body": f"Dear {app['student']},\n\nBased on your outstanding completion of all 24-week tasks and your mentor's glowing evaluation, TechNova Solutions is proud to offer you a Full-Time Junior {app['role']} position!\n\nWelcome to the permanent team.\n\nBest Regards,\nCompany HR, TechNova Solutions"
+                    }
+                    app["letters"].append(letter)
+                else:
+                    letter = {
+                        "title": "2. Internship Completion Notice",
+                        "subject": f"Internship Completion Update - TechNova",
+                        "body": f"Dear {app['student']},\n\nThank you for successfully finishing your 24-week internship. Based on final mentor reviews, we will not be extending a full-time placement offer at this moment.\n\nBest Regards,\nCompany HR, TechNova Solutions"
+                    }
+                    app["letters"].append(letter)
+                    
+                return {"status": "success", "email_data": {"to": app["email"], "subject": letter["subject"], "body": letter["body"]}}
+            
+    raise HTTPException(status_code=400, detail="Invalid action")
